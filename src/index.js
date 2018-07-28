@@ -118,17 +118,11 @@ function bindFunction(fn, ...args) {
     }
 }
 
-function sum() {
-    var result = 0;
-
-    for (var i = 0; i < arguments.length; i++) {
-        result += arguments[i];
-    }
-
-    return result;
+function sum(a, b) {
+    return a + b;
 }
 
-bindFunction(sum, 2, 4);
+var newSum = bindFunction(sum, 2, 4);
 
 export {
     returnFirstArgument,
