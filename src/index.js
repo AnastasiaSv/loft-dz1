@@ -7,7 +7,7 @@
  Посмотрите как работает forEach и повторите это поведение для массива, который будет передан в параметре array
  */
 function forEach(array, fn) {
-    for (let i = 0; i < array.length; i++) {
+    for (var i = 0; i < array.length; i++) {
         fn(array[i], i, array);
     }
 }
@@ -21,7 +21,7 @@ function forEach(array, fn) {
 function map(array, fn) {
     var newArray = [];
 
-    for (let i = 0; i < array.length; i++) {
+    for (var i = 0; i < array.length; i++) {
         newArray[i] = fn(array[i], i, array);
     }
 
@@ -56,7 +56,7 @@ function reduce(array, fn, initial) {
 function upperProps(obj) {
     var arr = [];
 
-    for (let key in obj) {
+    for (var key in obj) {
         key = key.toUpperCase();
         arr.push(key);
     }
@@ -73,15 +73,15 @@ function upperProps(obj) {
 function slice(array, from, to) {
     var newArray = [];
     var length = array.length;
-    var size = array.length;
-    var from = from || 0;
-    var to = to || length;
+    var size = array.length; // размер нового массива
 
+    from = from || 0;
+    to = (to !== undefined) ? to : length;
     from = (from < 0) ? (from + length) : from;
     to = (to < 0) ? (to + length) : to;
-
+    from = (from < 0) ? 0 : from;
+    to = (to > length) ? length : to;
     size = to - from;
-
     if (size > 0) {
         for (var i = 0; i < size; i++) {
             newArray[i] = array[i + from];
@@ -94,14 +94,17 @@ function slice(array, from, to) {
 /*
 еще один способ
 function slice(array, from, to) {
+    var newArray = [];
     var length = array.length;
-    var from = from || 0;
-    var to = to || length;
+    var size = array.length;
 
+    from = from || 0;
+    to = (to !== undefined) ? to : length;
     from = (from < 0) ? (from + length) : from;
     to = (to < 0) ? (to + length) : to;
-
-    var newArray = array.filter(function(item, i, arr) {
+    from = (from < 0) ? 0 : from;
+    to = (to > length) ? length : to;
+    newArray = array.filter(function(item, i, arr) {
         return (i >= from && i < to);
     });
 
