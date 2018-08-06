@@ -15,7 +15,7 @@
 function isAllTrue(array, fn) {
     var result = true;
 
-    if ((!Array.isArray(array)) || (array.length == 0)) {
+    if (!(array instanceof Array) || (array.length == 0)) {
         throw new Error('empty array');
     } else if (typeof fn != 'function') {
         throw new Error('fn is not a function');
@@ -49,7 +49,7 @@ function isAllTrue(array, fn) {
 function isSomeTrue(array, fn) {
     var counter = 0;
 
-    if ((!Array.isArray(array)) || (array.length == 0)) {
+    if (!(array instanceof Array) || (array.length == 0)) {
         throw new Error('empty array');
     } else if (typeof fn != 'function') {
         throw new Error('fn is not a function');
@@ -116,16 +116,12 @@ function calculator(number = 0) {
         sum: function() {
             var args = Array.from(arguments);
 
-            return args.reduce(function(total, current) {
-                return total + current;
-            }, number);
+            return args.reduce((total, current) => total + current, number);
         },
         dif: function() {
             var args = Array.from(arguments);
 
-            return args.reduce(function(total, current) {
-                return total - current;
-            }, number);
+            return args.reduce((total, current) => total - current, number);
         },
         div: function() {
             var args = Array.from(arguments);
@@ -140,9 +136,7 @@ function calculator(number = 0) {
         mul: function() {
             var args = Array.from(arguments);
 
-            return args.reduce(function(total, current) {
-                return total * current;
-            }, number);
+            return args.reduce((total, current) => total * current, number);
         }
     }
 
