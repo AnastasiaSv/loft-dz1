@@ -113,19 +113,13 @@ function calculator(number = 0) {
     }
 
     var obj = {
-        sum: function() {
-            var args = Array.from(arguments);
-
+        sum: function(...args) {
             return args.reduce((total, current) => total + current, number);
         },
-        dif: function() {
-            var args = Array.from(arguments);
-
+        dif: function(...args) {
             return args.reduce((total, current) => total - current, number);
         },
-        div: function() {
-            var args = Array.from(arguments);
-
+        div: function(...args) {
             return args.reduce(function(total, current) {
                 if (current == 0) {
                     throw new Error('division by 0');
@@ -133,9 +127,7 @@ function calculator(number = 0) {
                 return total / current;
             }, number);
         },
-        mul: function() {
-            var args = Array.from(arguments);
-
+        mul: function(...args) {
             return args.reduce((total, current) => total * current, number);
         }
     }
