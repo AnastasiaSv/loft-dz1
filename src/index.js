@@ -12,6 +12,7 @@
  */
 function createDivWithText(text) {
     var element = document.createElement('div');
+
     element.textContent = text;
 
     return element;
@@ -26,7 +27,7 @@ function createDivWithText(text) {
    prepend(document.querySelector('#one'), document.querySelector('#two')) // добавит элемент переданный первым аргументом в начало элемента переданного вторым аргументом
  */
 function prepend(what, where) {
-  where.prepend(what);
+    where.prepend(what);
 }
 
 /*
@@ -101,13 +102,13 @@ function findError(where) {
    должно быть преобразовано в <div></div><p></p>
  */
 function deleteTextNodes(where) {
-  var elements = where.childNodes;
+    var elements = where.childNodes;
 
-  for (var child of elements) {
-    if (child.nodeType == 3) {
-      child.parentNode.removeChild(child);
+    for (var child of elements) {
+        if (child.nodeType == 3) {
+            child.parentNode.removeChild(child);
+        }
     }
-  }
 }
 
 /*
@@ -123,16 +124,16 @@ function deleteTextNodes(where) {
    должно быть преобразовано в <span><div><b></b></div><p></p></span>
  */
 function deleteTextNodesRecursive(where) {
-  for (var i = 0; i < where.childNodes.length; i++) {
-    var element = where.childNodes[i];
+    for (var i = 0; i < where.childNodes.length; i++) {
+        var element = where.childNodes[i];
 
-    if (element.nodeType == 3) {
-      where.removeChild(element);
-      i--;
-    } else if (element.nodeType == 1) {
-      deleteTextNodesRecursive(element);
+        if (element.nodeType == 3) {
+            where.removeChild(element);
+            i--;
+        } else if (element.nodeType == 1) {
+            deleteTextNodesRecursive(element);
+        }
     }
-  }
 }
 
 /*
@@ -156,7 +157,66 @@ function deleteTextNodesRecursive(where) {
    }
  */
 function collectDOMStat(root) {
+    var texts = 0;
+    var classArray = [];
+    var tagsArray = [];
+    var classObj = {};
+    var tagsObj = {};
 
+    // подсчитаем количество текстовых узлов
+    function textsCount(parent) {
+        for (var node of parent.childNodes) {
+            if (node.nodeType == 3) {
+                texts++;
+            }
+            textsCount(node);
+        }
+    }
+    textsCount(root);
+
+    // найдем все классы узлов и занесем в массив
+    function classes(parent) {
+        for (var node of parent.children) {
+            classArray.push(...node.classList);
+            classes(node);
+        }
+    }
+    classes(root);
+
+    // найдем все теги и занесем в массив
+    function tags(parent) {
+        for (var node of parent.children) {
+            tagsArray.push(node.nodeName);
+            tags(node);
+        }
+    }
+    tags(root);
+
+    // занесем в объект все классы и их количество
+    for (var item of classArray) {
+        if (item in classObj) {
+            classObj[item]++;
+        } else {
+            classObj[item] = 1;
+        }
+    }
+
+    // занесем в объект все теги и их количество
+    for (var item of tagsArray) {
+        if (item in tagsObj) {
+            tagsObj[item]++;
+        } else {
+            tagsObj[item] = 1;
+        }
+    }
+
+    var obj = {
+        tags: tagsObj,
+        classes: classObj,
+        texts: texts
+    }
+
+    return obj;
 }
 
 /*
