@@ -252,6 +252,38 @@ function collectDOMStat(root) {
    }
  */
 function observeChildNodes(where, fn) {
+
+    var MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver;
+    var info = {}
+    var nodes = [];
+    var type;
+    var observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            // перебираем все отловленные изменения
+            if (mutation.type === 'childList') {
+                for (var i = 0; i < mutations.length; ++i) {
+                    // добавленные элементы
+                    for (var j = 0; j < mutations[i].addedNodes.length; ++j) {
+                        type = 'insert';
+                        nodes.push(mutations[i].addedNodes[j]);
+                    }
+                    // удаленные элементы
+                    for (var j = 0; j < mutations[i].removedNodes.length; ++j) {
+                        type = 'remove';
+                        nodes.push(mutations[i].removedNodes[j]);
+                    }
+                }
+                info.type = type;
+                info.nodes = nodes;
+                fn(info);
+            }
+        });
+    });
+
+    observer.observe(where, {
+        attributes: true,
+        childList: true
+    });
 }
 
 export {
