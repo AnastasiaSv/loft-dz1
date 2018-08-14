@@ -270,8 +270,10 @@ function observeChildNodes(where, fn) {
                         nodes.push(mutations[i].removedNodes[j]);
                     }
                 }
-                info.type = type;
-                info.nodes = nodes;
+                info = {
+                  type: type,
+                  nodes: nodes
+                }
                 fn(info);
             }
         });
