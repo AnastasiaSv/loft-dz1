@@ -165,7 +165,7 @@ function collectDOMStat(root) {
 
     // подсчитаем количество текстовых узлов
     function textsCount(parent) {
-        for (var node of parent.childNodes) {
+        for (let node of parent.childNodes) {
             if (node.nodeType == 3) {
                 texts++;
             }
@@ -176,7 +176,7 @@ function collectDOMStat(root) {
 
     // найдем все классы узлов и занесем в массив
     function classes(parent) {
-        for (var node of parent.children) {
+        for (let node of parent.children) {
             classArray.push(...node.classList);
             classes(node);
         }
@@ -185,7 +185,7 @@ function collectDOMStat(root) {
 
     // найдем все теги и занесем в массив
     function tags(parent) {
-        for (var node of parent.children) {
+        for (let node of parent.children) {
             tagsArray.push(node.nodeName);
             tags(node);
         }
@@ -193,7 +193,7 @@ function collectDOMStat(root) {
     tags(root);
 
     // занесем в объект все классы и их количество
-    for (var item of classArray) {
+    for (let item of classArray) {
         if (item in classObj) {
             classObj[item]++;
         } else {
@@ -202,7 +202,7 @@ function collectDOMStat(root) {
     }
 
     // занесем в объект все теги и их количество
-    for (var item of tagsArray) {
+    for (let item of tagsArray) {
         if (item in tagsObj) {
             tagsObj[item]++;
         } else {
@@ -210,7 +210,7 @@ function collectDOMStat(root) {
         }
     }
 
-    var obj = {
+    const obj = {
         tags: tagsObj,
         classes: classObj,
         texts: texts
@@ -261,14 +261,14 @@ function observeChildNodes(where, fn) {
         mutations.forEach(function(mutation) {
             // перебираем все отловленные изменения
             if (mutation.type === 'childList') {
-                for (var i = 0; i < mutations.length; ++i) {
+                for (let i = 0; i < mutations.length; ++i) {
                     // добавленные элементы
-                    for (var j = 0; j < mutations[i].addedNodes.length; ++j) {
+                    for (let j = 0; j < mutations[i].addedNodes.length; ++j) {
                         type = 'insert';
                         nodes.push(mutations[i].addedNodes[j]);
                     }
                     // удаленные элементы
-                    for (var j = 0; j < mutations[i].removedNodes.length; ++j) {
+                    for (let j = 0; j < mutations[i].removedNodes.length; ++j) {
                         type = 'remove';
                         nodes.push(mutations[i].removedNodes[j]);
                     }
