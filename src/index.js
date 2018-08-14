@@ -257,17 +257,14 @@ function observeChildNodes(where, fn) {
     var info = {}
     var nodes = [];
     var type;
-    var observer = new MutationObserver(function(mutations) {
-        mutations.forEach(function(mutation) {
-            // перебираем все отловленные изменения
+    var observer = new MutationObserver(mutations => {
+        mutations.forEach(mutation => {
             if (mutation.type === 'childList') {
                 for (let i = 0; i < mutations.length; ++i) {
-                    // добавленные элементы
                     for (let j = 0; j < mutations[i].addedNodes.length; ++j) {
                         type = 'insert';
                         nodes.push(mutations[i].addedNodes[j]);
                     }
-                    // удаленные элементы
                     for (let j = 0; j < mutations[i].removedNodes.length; ++j) {
                         type = 'remove';
                         nodes.push(mutations[i].removedNodes[j]);
