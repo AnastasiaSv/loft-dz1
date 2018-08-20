@@ -113,7 +113,7 @@ function isMatching(full, chunk) {
 function getCities() {
     let current = cities.filter(city => isMatching(city.name, filterInput.value));
 
-    current = current.map(item => item.name).join('<br/>');
+    current = current.map(city => city.name).join('<br/>');
     filterResult.innerHTML = filterInput.value ? current : '';
 }
 
