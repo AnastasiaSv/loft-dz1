@@ -64,7 +64,7 @@ function loadTowns() {
         xhr.responseType = 'json';
         xhr.addEventListener('load', () => {
             if (xhr.status === 200) {
-                resolve(xhr.response.sort(function(a, b) {
+                resolve(xhr.response.sort((a, b) => {
                     if (a.name < b.name) {
                         return -1;
                     }
@@ -85,14 +85,14 @@ function loadTowns() {
 
 function handlerCities() {
     loadTowns()
-        .then(function(result) { 
+        .then((result) => { 
             cities = result;
             loadingBlock.style.display = 'none';
             filterBlock.style.display = 'block';
             button.style.display = 'none';
             notification.style.display = 'none';
         })
-        .catch(function () {
+        .catch(() => {
             loadingBlock.style.display = 'none';
             button.style.display = 'block';
             notification.style.display = 'block';
@@ -109,6 +109,7 @@ function isMatching(full, chunk) {
         return false;
     }
 }
+
 
 function getCities() {
     let current = cities.filter(city => isMatching(city.name, filterInput.value));
