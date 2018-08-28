@@ -5,13 +5,13 @@ const searchAddedFriend = document.querySelector('#added-name-search');
 const allFriends = document.querySelector('#friends');
 const addedFriends = document.querySelector('#friends-list');
 
-searchFriend.addEventListener('input', () => {
+searchFriend.addEventListener('keyup', () => {
     var friendList = allFriends.querySelectorAll('.name');
 
     getFriend(friendList, searchFriend);
 })
 
-searchAddedFriend.addEventListener('input', () => {
+searchAddedFriend.addEventListener('keyup', () => {
     var friendList = addedFriends.querySelectorAll('.name');
 
     getFriend(friendList, searchAddedFriend);
@@ -61,21 +61,29 @@ document.addEventListener('dragover', (e) => {
 document.addEventListener('drop', (e) => {
     if (currentDrag) {
         const zone = getCurrentZone(e.target);
+        let icon = currentDrag.node.querySelector('.fa');
 
         e.preventDefault();
 
         if (zone && currentDrag.startZone !== zone) {
-            if (e.target.classList.contains('item')) {
-                zone.insertBefore(currentDrag.node, e.target.nextElementSibling);
-            } else {
-                zone.insertBefore(currentDrag.node, zone.lastElementChild);
-            }
-            let icon = currentDrag.node.querySelector('.fa');
-
             if (icon.getAttribute('class') == 'fa fa-plus') {
-                icon.setAttribute('class', 'fa fa-remove');
-            } else {
-                icon.setAttribute('class', 'fa fa-plus');
+                if (isMatching(currentDrag.node.textContent, searchAddedFriend.value)) {
+                    if (e.target.classList.contains('item')) {
+                        zone.insertBefore(currentDrag.node, e.target.nextElementSibling);
+                    } else {
+                        zone.insertBefore(currentDrag.node, zone.lastElementChild);
+                    }
+                    icon.setAttribute('class', 'fa fa-remove');
+                }
+            } else if (icon.getAttribute('class') == 'fa fa-remove') {
+                if (isMatching(currentDrag.node.textContent, searchFriend.value)) {
+                    if (e.target.classList.contains('item')) {
+                        zone.insertBefore(currentDrag.node, e.target.nextElementSibling);
+                    } else {
+                        zone.insertBefore(currentDrag.node, zone.lastElementChild);
+                    }
+                    icon.setAttribute('class', 'fa fa-plus');
+                }
             }
         }
 
@@ -95,15 +103,19 @@ function getCurrentZone(from) {
 
 friendList.addEventListener('click', (e) => {
     if (e.target.getAttribute('class') == 'fa fa-plus') {
-        e.target.setAttribute('class', 'fa fa-remove');
-        addedFriendList.appendChild(e.target.parentNode);
+        if (isMatching(e.target.parentNode.querySelector('.name').textContent, searchAddedFriend.value)) {
+            e.target.setAttribute('class', 'fa fa-remove');
+            addedFriendList.appendChild(e.target.parentNode);
+        }
     }
 });
 
 addedFriendList.addEventListener('click', (e) => {
     if (e.target.getAttribute('class') == 'fa fa-remove') {
-    e.target.setAttribute('class', 'fa fa-plus');
-        friendList.appendChild(e.target.parentNode);
+        if (isMatching(e.target.parentNode.querySelector('.name').textContent, searchFriend.value)) {
+            e.target.setAttribute('class', 'fa fa-plus');
+            friendList.appendChild(e.target.parentNode);
+        }
     }
 });
 
