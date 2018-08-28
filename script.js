@@ -6,15 +6,15 @@ const allFriends = document.querySelector('#friends');
 const addedFriends = document.querySelector('#friends-list');
 
 searchFriend.addEventListener('input', () => {
-		var friendList = allFriends.querySelectorAll('.name');
+    var friendList = allFriends.querySelectorAll('.name');
 
-		getFriend(friendList, searchFriend);
+    getFriend(friendList, searchFriend);
 })
 
 searchAddedFriend.addEventListener('input', () => {
-		var friendList = addedFriends.querySelectorAll('.name');
+    var friendList = addedFriends.querySelectorAll('.name');
 
-		getFriend(friendList, searchAddedFriend);
+    getFriend(friendList, searchAddedFriend);
 })
 
 function getFriend(array, input) {
