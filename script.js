@@ -66,26 +66,20 @@ document.addEventListener('drop', (e) => {
         e.preventDefault();
 
         if (zone && currentDrag.startZone !== zone) {
-            if (icon.getAttribute('class') == 'fa fa-plus') {
-                if (isMatching(currentDrag.node.textContent, searchAddedFriend.value)) {
-                    if (e.target.classList.contains('item')) {
-                        zone.insertBefore(currentDrag.node, e.target.nextElementSibling);
-                    } else {
-                        zone.insertBefore(currentDrag.node, zone.lastElementChild);
-                    }
-                    icon.setAttribute('class', 'fa fa-remove');
-                }
-            } else if (icon.getAttribute('class') == 'fa fa-remove') {
-                if (isMatching(currentDrag.node.textContent, searchFriend.value)) {
-                    if (e.target.classList.contains('item')) {
-                        zone.insertBefore(currentDrag.node, e.target.nextElementSibling);
-                    } else {
-                        zone.insertBefore(currentDrag.node, zone.lastElementChild);
-                    }
-                    icon.setAttribute('class', 'fa fa-plus');
-                }
+            if (e.target.classList.contains('item')) {
+                zone.insertBefore(currentDrag.node, e.target.nextElementSibling);
+            } else {
+                zone.insertBefore(currentDrag.node, zone.lastElementChild);
             }
-        }
+
+            if (icon.getAttribute('class') == 'fa fa-plus') {
+                icon.setAttribute('class', 'fa fa-remove');
+                checkFriendDnd(currentDrag.node, searchAddedFriend.value);
+            } else {
+                icon.setAttribute('class', 'fa fa-plus');
+                checkFriendDnd(currentDrag.node, searchFriend.value);
+            }
+          }
 
         currentDrag = null;
     }
@@ -103,28 +97,42 @@ function getCurrentZone(from) {
 
 friendList.addEventListener('click', (e) => {
     if (e.target.getAttribute('class') == 'fa fa-plus') {
-        if (isMatching(e.target.parentNode.querySelector('.name').textContent, searchAddedFriend.value)) {
-            e.target.setAttribute('class', 'fa fa-remove');
-            addedFriendList.appendChild(e.target.parentNode);
-        }
+        e.target.setAttribute('class', 'fa fa-remove');
+        addedFriendList.appendChild(e.target.parentNode);
+        checkFriend(e.target, searchAddedFriend.value);
     }
 });
 
 addedFriendList.addEventListener('click', (e) => {
     if (e.target.getAttribute('class') == 'fa fa-remove') {
-        if (isMatching(e.target.parentNode.querySelector('.name').textContent, searchFriend.value)) {
-            e.target.setAttribute('class', 'fa fa-plus');
-            friendList.appendChild(e.target.parentNode);
-        }
+        e.target.setAttribute('class', 'fa fa-plus');
+        friendList.appendChild(e.target.parentNode);
+        checkFriend(e.target, searchFriend.value);
     }
 });
+
+function checkFriend(element, value) {
+    if (isMatching(element.parentNode.querySelector('.name').textContent, value)) {
+        element.parentNode.style.display = 'flex';
+    } else {
+        element.parentNode.style.display = 'none';
+    }
+}
+
+function checkFriendDnd(element, value) {
+    if (isMatching(element.textContent, value)) {
+        element.style.display = 'flex';
+    } else {
+        element.style.display = 'none';
+    }
+}
 
 // LocalStorage
 
 const button = document.querySelector('#save');
 let storage = localStorage;
 
-save.addEventListener('click', function() {
+save.addEventListener('click', () => {
     var list = addedFriends.querySelectorAll('.item');
     var ids = [];
 
