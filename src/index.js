@@ -120,7 +120,7 @@ function slice(array, from, to) {
  */
 function createProxy(obj) {
     return new Proxy(obj, {
-        set: function(target, property, value) {
+        set: (target, property, value) => {
             target[property] = value * value;
             return true;
         }
