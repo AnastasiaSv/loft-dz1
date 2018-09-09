@@ -1,200 +1,220 @@
-// Search friend
+var templateReference = document.getElementById('referenceTemplate').innerHTML;
+Handlebars.registerPartial('reference', templateReference);
+var config = {
+    center: [55.76, 37.62],
+    zoom: 16
+};
+var references = [];
 
-const searchFriend = document.querySelector('#name-search');
-const searchAddedFriend = document.querySelector('#added-name-search');
-const allFriends = document.querySelector('#friends');
-const addedFriends = document.querySelector('#friends-list');
+ymaps.ready(init);
 
-searchFriend.addEventListener('keyup', () => {
-    var friendList = allFriends.querySelectorAll('.name');
+function init() {
+    let myMap = new ymaps.Map('map', config),
 
-    getFriend(friendList, searchFriend);
-})
+    // Макет балуна
+    balloonLayout = ymaps.templateLayoutFactory.createClass(
+        baloonTemplate(), {
+        build(){
+            this.constructor.superclass.build.call(this);
+            let closePopup = document.querySelector('#closePopup'),
+                addReference = document.querySelector('#addReference');
 
-searchAddedFriend.addEventListener('keyup', () => {
-    var friendList = addedFriends.querySelectorAll('.name');
+            addReference.addEventListener('click', this.onAddReference.bind(this));
+            closePopup.addEventListener('click', this.onClosePopup.bind(this));
+        },
 
-    getFriend(friendList, searchAddedFriend);
-})
+        // Закрытие окна
+        onClosePopup(e){
+            this.events.fire('userclose');
+        },
 
-function getFriend(array, input) {
-    for (let i = 0; i < array.length; i++) {
-        if (isMatching(array[i].textContent, input.value)) {
-            array[i].parentNode.style.display = 'flex';
-        } else if (!(isMatching(array[i].textContent, input.value))) {
-            array[i].parentNode.style.display = 'none';
+        // Добавление отзыва
+        onAddReference(e) {
+            e.preventDefault();
+            let name = document.querySelector('#name'),
+                place = document.querySelector('#place'),
+                text = document.querySelector('#text'),
+                list = document.querySelector('.popup-content__list');
+
+            if (name.value && place.value && text.value){
+                let template = Handlebars.compile(templateReference),
+                    ymapsElem =  list.firstElementChild.firstElementChild,
+                    coords = this.getData().properties? this.getData().properties.getAll().placemarkData.coords : this.getData().coords,
+                    address = this.getData().properties? this.getData().properties.getAll().placemarkData.address : this.getData().address,
+                    myPlacemark,
+                    placemarkData,
+                    l = new Date(),
+                    date = l.toLocaleDateString();
+
+                placemarkData = {
+                    coords: coords,
+                    address: address,
+                    name: name.value,
+                    place: place.value,
+                    date: date,
+                    reference: text.value
+                };
+
+                references.push(placemarkData);
+                name.value = place.value = text.value = '';
+                if (ymapsElem.firstElementChild) {
+                    ymapsElem.innerHTML += template(placemarkData);
+                } else {
+                    ymapsElem.innerHTML = template(placemarkData);
+                }
+                list.scrollTop = 9999;
+                myPlacemark = this.createPlacemark.call(this, placemarkData);
+                clusterer.add(myPlacemark);
+                myMap.geoObjects.add(clusterer);
+            } else {
+                alert('Пожалуйста, заполните поля');
+            }
+        },
+
+        // Автопозиционирования баллуна, извещаем о текущих размерах
+        getShape() {
+            return new ymaps.shape.Rectangle(new ymaps.geometry.pixel.Rectangle([ [0, 0], [380, 560] ]));
+        },
+
+        // Создание метки
+        createPlacemark(placemarkData) {
+            return new ymaps.Placemark(placemarkData.coords, {
+                placemarkData: placemarkData
+            }, {
+                iconLayout: IconLayout,
+                iconShape: {
+                    type: 'Rectangle',
+                    coordinates: [[0, 0], [44, 66]]
+                },
+                iconOffset: [-22, -66],
+                balloonLayout: balloonLayout,
+                balloonContentLayout: balloonContentLayout,
+                balloonPanelMaxMapArea: 0
+            });
         }
-    }
-}
+    }),
 
-function isMatching(full, chunk) {
-    if (full.toLowerCase().indexOf(chunk.toLowerCase()) !== -1) {
-        return true;
-    } else {
-        return false;
-    }
-}
+    balloonContentLayout = ymaps.templateLayoutFactory.createClass(baloonContent()),
 
-// DnD
+    customItemContentLayout = ymaps.templateLayoutFactory.createClass(
+        contentLayout(), {
 
-const friendList = document.querySelector('#friends ul');
-const addedFriendList = document.querySelector('#friends-list ul');
+        build() {
+            this.constructor.superclass.build.call(this);
+            let link = document.querySelector('#addressLink');
+            link.addEventListener('click', this.onLinkClick.bind(this))
+        },
 
-let currentDrag;
+        clear() {
+            let link = document.querySelector('#addressLink');
+            link.removeEventListener('click', this.onLinkClick);
+            this.constructor.superclass.clear.call(this);
+        },
 
-document.addEventListener('dragstart', (e) => {
-    const zone = getCurrentZone(e.target);
+        onLinkClick(e) {
+            e.preventDefault();
+            let coords = this.getData().properties.getAll().placemarkData.coords,
+                source = document.querySelector("#listTemplate").innerHTML,
+                template = Handlebars.compile(source),
+                foundPlacemarks = [];
 
-    if (zone) {
-        currentDrag = { startZone: zone, node: e.target };
-    }
-});
-
-document.addEventListener('dragover', (e) => {
-    const zone = getCurrentZone(e.target);
-
-    if (zone) {
-        e.preventDefault();
-    }
-});
-
-document.addEventListener('drop', (e) => {
-    if (currentDrag) {
-        const zone = getCurrentZone(e.target);
-        let icon = currentDrag.node.querySelector('.fa');
-
-        e.preventDefault();
-
-        if (zone && currentDrag.startZone !== zone) {
-            if (e.target.classList.contains('item')) {
-                zone.insertBefore(currentDrag.node, e.target.nextElementSibling);
-            } else {
-                zone.insertBefore(currentDrag.node, zone.lastElementChild);
-            }
-
-            if (icon.getAttribute('class') == 'fa fa-plus') {
-                icon.setAttribute('class', 'fa fa-remove');
-                checkFriendDnd(currentDrag.node, searchAddedFriend.value);
-            } else {
-                icon.setAttribute('class', 'fa fa-plus');
-                checkFriendDnd(currentDrag.node, searchFriend.value);
-            }
-          }
-
-        currentDrag = null;
-    }
-});
-
-function getCurrentZone(from) {
-    do {
-        if (from.classList.contains('drop-zone')) {
-            return from;
+            myMap.setZoom(16);
+            foundPlacemarks = references.filter((placemark) => {
+                return (coords[0] === placemark.coords[0] && coords[1] === placemark.coords[1])
+            });
+            myMap.balloon.open(coords, {
+                coords: coords,
+                address: foundPlacemarks[0].address,
+                content: template({list: foundPlacemarks})
+            }, {
+                layout: balloonLayout,
+                contentLayout: balloonContentLayout
+            });
+            this.events.fire('userclose');
         }
-    } while (from = from.parentElement);
+    }),
 
-    return null;
-}
+    // Макет иконки
+    IconLayout = ymaps.templateLayoutFactory.createClass('<img src="images/icon-orange.png">'),
 
-friendList.addEventListener('click', (e) => {
-    if (e.target.getAttribute('class') == 'fa fa-plus') {
-        e.target.setAttribute('class', 'fa fa-remove');
-        addedFriendList.appendChild(e.target.parentNode);
-        checkFriend(e.target, searchAddedFriend.value);
-    }
-});
+    // Создание кластеризатора
+    clusterer = new ymaps.Clusterer({
+        preset: 'islands#invertedOrangeClusterIcons',
+        gridSize: 128,
+        clusterDisableClickZoom: true,
+        clusterHideIconOnBalloonOpen: true,
+        clusterBalloonContentLayout: "cluster#balloonCarousel",
+        clusterBalloonCycling: false,
+        clusterOpenBalloonOnClick: true,
+        clusterBalloonItemContentLayout: customItemContentLayout,
+        clusterBalloonPanelMaxMapArea: 0
+    });
 
-addedFriendList.addEventListener('click', (e) => {
-    if (e.target.getAttribute('class') == 'fa fa-remove') {
-        e.target.setAttribute('class', 'fa fa-plus');
-        friendList.appendChild(e.target.parentNode);
-        checkFriend(e.target, searchFriend.value);
-    }
-});
+    // Слушаем клик на карте
+    myMap.events.add('click', (e) => {
+        let coords = e.get('coords');
 
-function checkFriend(element, value) {
-    if (isMatching(element.parentNode.querySelector('.name').textContent, value)) {
-        element.parentNode.style.display = 'flex';
-    } else {
-        element.parentNode.style.display = 'none';
-    }
-}
+        // Определяем адрес по координатам
+        ymaps.geocode(coords).then((res) => {
+            let object = res.geoObjects.get(0),
+                address = object.properties.get('text');
 
-function checkFriendDnd(element, value) {
-    if (isMatching(element.textContent, value)) {
-        element.style.display = 'flex';
-    } else {
-        element.style.display = 'none';
-    }
-}
-
-// LocalStorage
-
-const button = document.querySelector('#save');
-let storage = localStorage;
-
-save.addEventListener('click', () => {
-    var list = addedFriends.querySelectorAll('.item');
-    var ids = [];
-
-    for (var item of list) {
-        ids.push(item.getAttribute('id'));
-    }
-    storage.data = JSON.stringify(ids);
-})
-
-// VK API
-
-VK.init({
-    apiId: 6674957
-})
-
-function auth() {
-    return new Promise((resolve, reject) => {
-        VK.Auth.login(data => {
-            if (data.session) {
-                resolve();
-            } else {
-                reject(new Error('Не удалось авторизоваться'));
-            }
-        }, 2)
+            myMap.balloon.open(coords,{
+                coords: coords,
+                address: address,
+                content: 'Отзывов пока нет'
+            },{
+                layout: balloonLayout,
+                contentLayout: balloonContentLayout
+            });
+        });
     });
 }
 
-function callAPI(method, params) {
-    params.v = '5.76';
-
-    return new Promise((resolve, reject) => {
-        VK.api(method, params, (data) => {
-            if (data.error) {
-                reject(data.error);
-            } else {
-                resolve(data.response);
-            }
-        });
-    })
+function baloonTemplate() {
+    return `<div id="popup">
+            <div class="popup-header">
+                <h3 class="popup-header__title">
+                    <i class="fa fa-map-marker"></i>{{properties.placemarkData.address|default: address}}
+                </h3>
+                <i id="closePopup" class="fa fa-times"></i>
+            </div>
+            <div class="popup-content">
+                <ul class="popup-content__list">
+                    {% include options.contentLayout %}
+                </ul>
+                <div class="popup-content__form">
+                    <h3>Ваш отзыв</h3>
+                    <form action="" id="reference">
+                        <input type="text" name="name" id="name" placeholder="Ваше имя">
+                        <input type="text" name="place" id="place" placeholder="Укажите место">
+                        <textarea name="text" id="text" placeholder="Поделитесь впечатлениями"></textarea>
+                        <input id="addReference" type="submit" value="Добавить">
+                    </form>
+                </div>
+            </div>
+        </div>`;
 }
 
-auth()
-    .then(() => {
-        return callAPI('friends.get', { fields: 'photo_50' });
-    })
-    .then(friends => {
-        const template = document.querySelector('#user-template').textContent;
-        const render = Handlebars.compile(template);
-        const html = render(friends);
+function baloonContent() {
+    return `{% if properties.placemarkData %}
+        <li class="refer-item">
+            <span class="name">{{properties.placemarkData.name}},</span>
+            <span class="place">{{properties.placemarkData.place}},</span>
+            <span class="date">{{properties.placemarkData.date}}</span>
+            <div class="refer-text">{{properties.placemarkData.reference}}</div>
+        </li>
+        {% endif %}
+        {% if content %}
+            {{content|raw}}
+        {% endif %}`;
+}
 
-        friendList.innerHTML = html;
-
-        return new Promise((resolve) => {
-            if (storage.data){
-                var loadedData = JSON.parse(storage.data);
-                resolve(loadedData);
-            }
-        });
-    })
-    .then(loadedData => {
-        for (var item of loadedData) {
-            document.getElementById(item).lastElementChild.setAttribute('class', 'fa fa-remove');
-            addedFriendList.appendChild(document.getElementById(item));
-        }
-    })
+function contentLayout() {
+    return `<div class="cluster-balloon">
+            <h2 class="cluster-balloon-header">{{properties.placemarkData.place}}</h2>
+            <a href="#" id="addressLink">{{properties.placemarkData.address}}</a>
+            <div class="cluster-balloon-body">{{properties.placemarkData.reference}}</div>
+            <div class="cluster-balloon-footer">{{properties.placemarkData.date}}</div>
+        </div>`;
+}
