@@ -1,10 +1,10 @@
-var templateReference = document.getElementById('referenceTemplate').innerHTML;
-Handlebars.registerPartial('reference', templateReference);
 var config = {
     center: [55.76, 37.62],
     zoom: 16
 };
 var references = [];
+var templateReference = document.getElementById('referenceTemplate').innerHTML;
+Handlebars.registerPartial('reference', templateReference);
 
 ymaps.ready(init);
 
@@ -56,13 +56,15 @@ function init() {
                 };
 
                 references.push(placemarkData);
-                name.value = place.value = text.value = '';
+                name.value = '';
+                place.value = '';
+                text.value = '';
                 if (ymapsElem.firstElementChild) {
                     ymapsElem.innerHTML += template(placemarkData);
                 } else {
                     ymapsElem.innerHTML = template(placemarkData);
                 }
-                list.scrollTop = 9999;
+                list.scrollTop = list.offsetHeight;
                 myPlacemark = this.createPlacemark.call(this, placemarkData);
                 clusterer.add(myPlacemark);
                 myMap.geoObjects.add(clusterer);
@@ -102,16 +104,16 @@ function init() {
         build() {
             this.constructor.superclass.build.call(this);
             let link = document.querySelector('#addressLink');
-            link.addEventListener('click', this.onLinkClick.bind(this))
+            link.addEventListener('click', this.clickByLink.bind(this))
         },
 
         clear() {
             let link = document.querySelector('#addressLink');
-            link.removeEventListener('click', this.onLinkClick);
+            link.removeEventListener('click', this.clickByLink);
             this.constructor.superclass.clear.call(this);
         },
 
-        onLinkClick(e) {
+        clickByLink(e) {
             e.preventDefault();
             let coords = this.getData().properties.getAll().placemarkData.coords,
                 source = document.querySelector("#listTemplate").innerHTML,
